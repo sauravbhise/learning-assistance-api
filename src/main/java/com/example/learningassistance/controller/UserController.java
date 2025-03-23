@@ -2,9 +2,14 @@ package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.User;
 import com.example.learningassistance.repo.UserRepo;
+import com.example.learningassistance.service.JwtService;
+import com.example.learningassistance.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -16,6 +21,12 @@ public class UserController {
 
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -48,7 +59,7 @@ public class UserController {
 
     @PostMapping("/users")
     public ResponseEntity<?> addUser(@RequestBody User user) {
-        Optional<User> existingUser = userRepo.findByEmail(user.getEmail());
+        Optional<User> existingUser = Optional.ofNullable(userRepo.findByEmail(user.getEmail()));
 
         if (existingUser.isPresent()) {
             return new ResponseEntity<>("User with email " + user.getEmail() + " already exists.", HttpStatus.CONFLICT);
@@ -83,10 +94,32 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-
     @DeleteMapping("/users/{id}")
     public ResponseEntity<HttpStatus> deleteUserById(@PathVariable long id) {
         userRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        Optional<User> existingUser = Optional.ofNullable(userRepo.findByEmail(user.getEmail()));
+
+        if (existingUser.isPresent()) {
+            return new ResponseEntity<>("User with email " + user.getEmail() + " already exists.", HttpStatus.CONFLICT);
+        }
+
+        return new ResponseEntity<>(userService.saveUser(user), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody User user) {
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+
+        if (authentication.isAuthenticated()) {
+            return new ResponseEntity<>(jwtService.generateToken(user.getEmail()), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 }

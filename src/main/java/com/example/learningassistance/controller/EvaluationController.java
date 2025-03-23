@@ -103,7 +103,7 @@ public class EvaluationController {
         return  new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/evaluation/{id}")
+    @DeleteMapping("/evaluations/{id}")
     public ResponseEntity<HttpStatus> deleteEvaluation(@PathVariable long id) {
         evaluationRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);

@@ -97,9 +97,9 @@ public class SubmissionController {
             }
 
             if (newSubmissionData.isEvaluted()) {
-                submission.setEvaluted(true);
-            } else {
                 submission.setEvaluted(false);
+            } else {
+                submission.setEvaluted(true);
             }
 
             Submission updatedSubmission = submissionRepo.save(submission);
@@ -109,7 +109,7 @@ public class SubmissionController {
         return  new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/submission/{id}")
+    @DeleteMapping("/submissions/{id}")
     public ResponseEntity<HttpStatus> deleteSubmission(@PathVariable long id) {
         submissionRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
