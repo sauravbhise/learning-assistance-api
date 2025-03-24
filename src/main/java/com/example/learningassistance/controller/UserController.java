@@ -12,9 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 public class UserController {
@@ -117,7 +115,12 @@ public class UserController {
                 .authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
 
         if (authentication.isAuthenticated()) {
-            return new ResponseEntity<>(jwtService.generateToken(user.getEmail()), HttpStatus.OK);
+            String accessToken = jwtService.generateToken(user.getEmail());
+            String role = userRepo.findByEmail(user.getEmail()).getRole();
+            Map<String, String> response = new HashMap<>();
+            response.put("accessToken", accessToken);
+            response.put("role", role);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
