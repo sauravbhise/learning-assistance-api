@@ -29,7 +29,6 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         try {
-
             List<User> userList = new ArrayList<>();
             userRepo.findAll().forEach(userList::add);
 
@@ -117,9 +116,11 @@ public class UserController {
         if (authentication.isAuthenticated()) {
             String accessToken = jwtService.generateToken(user.getEmail());
             String role = userRepo.findByEmail(user.getEmail()).getRole();
+            Long id = userRepo.findByEmail(user.getEmail()).getId();
             Map<String, String> response = new HashMap<>();
             response.put("accessToken", accessToken);
             response.put("role", role);
+            response.put("id", String.valueOf(id));
             return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
