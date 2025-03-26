@@ -43,6 +43,57 @@ public class UserController {
         }
     }
 
+    @GetMapping("/users/admins")
+    public ResponseEntity<List<User>> getAllAdmins() {
+        try {
+            List<User> adminList = new ArrayList<>();
+            userRepo.findByRole("ADMIN").forEach(adminList::add);
+
+            if (adminList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(adminList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/users/las")
+    public ResponseEntity<List<User>> getAllLas() {
+        try {
+            List<User> laList = new ArrayList<>();
+            userRepo.findByRole("LA").forEach(laList::add);
+
+            if (laList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(laList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/users/students")
+    public ResponseEntity<List<User>> getAllStudents() {
+        try {
+            List<User> studentList = new ArrayList<>();
+            userRepo.findByRole("STUDENT").forEach(studentList::add);
+
+            if (studentList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(studentList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable long id) {
         Optional<User> user = userRepo.findById(id);
