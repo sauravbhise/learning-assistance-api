@@ -12,19 +12,21 @@ public class Assignment {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String title;
+    @Column(length = 1000)
     private String description;
-    private String file_url;
+    @Column(length = 500)
+    private String filePath;
     private long createdBy;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Assignment() {
     }
 
-    public Assignment(long id, String title, String description, String file_url, long createdBy, LocalDateTime createdAt) {
+    public Assignment(long id, String title, String description, String filePath, long createdBy, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.file_url = file_url;
+        this.filePath = filePath;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
@@ -53,12 +55,12 @@ public class Assignment {
         this.description = description;
     }
 
-    public String getFile_url() {
-        return file_url;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setFile_url(String file_url) {
-        this.file_url = file_url;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public long getCreatedBy() {

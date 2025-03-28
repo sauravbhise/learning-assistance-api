@@ -2,11 +2,14 @@ package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.Assignment;
 import com.example.learningassistance.repo.AssignmentRepo;
+import com.example.learningassistance.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +19,8 @@ public class AssignmentController {
 
     @Autowired
     private AssignmentRepo assignmentRepo;
+    @Autowired
+    private FileService fileService;
 
     @GetMapping("/assignments")
     public ResponseEntity<List<Assignment>> getAllAssignments() {
@@ -63,10 +68,19 @@ public class AssignmentController {
     }
 
     @PostMapping("/assignments")
-    public ResponseEntity<Assignment> addAssignment(@RequestBody Assignment assignment) {
-        Assignment savedAssignment = assignmentRepo.save(assignment);
+    public ResponseEntity<Assignment> addAssignment(@ModelAttribute Assignment assignment, @RequestParam MultipartFile file) {
 
-        return new ResponseEntity<>(savedAssignment, HttpStatus.OK);
+        try {
+            String filePath = fileService.uploadFile(file);
+
+            assignment.setFilePath(filePath);
+
+            Assignment savedAssignment = assignmentRepo.save(assignment);
+
+            return new ResponseEntity<>(savedAssignment, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/assignments/{id}")
@@ -84,8 +98,8 @@ public class AssignmentController {
                 assignment.setDescription(newAssignmentData.getDescription());
             }
 
-            if (newAssignmentData.getFile_url() != null) {
-                assignment.setFile_url(newAssignmentData.getFile_url());
+            if (newAssignmentData.getFilePath() != null) {
+                assignment.setFilePath(newAssignmentData.getFilePath());
             }
 
             Assignment updatedAssignment = assignmentRepo.save(assignment);
