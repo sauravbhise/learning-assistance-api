@@ -1,11 +1,15 @@
 package com.example.learningassistance.controller;
 
+import com.example.learningassistance.model.Assignment;
 import com.example.learningassistance.model.Submission;
+import com.example.learningassistance.repo.AssignmentRepo;
 import com.example.learningassistance.repo.SubmissionRepo;
+import com.example.learningassistance.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +20,10 @@ public class SubmissionController {
 
     @Autowired
     SubmissionRepo submissionRepo;
+    @Autowired
+    AssignmentRepo assignmentRepo;
+    @Autowired
+    FileService fileService;
 
     @GetMapping("/submissions")
     public ResponseEntity<List<Submission>> getAllSubmissions() {
@@ -48,7 +56,31 @@ public class SubmissionController {
     public ResponseEntity<List<Submission>> getSubmissionsByStudentId(@PathVariable long userId) {
         try {
             List<Submission> submissionList = new ArrayList<>();
-            submissionRepo.findByStudentId(userId).forEach(submissionList::add);
+            submissionRepo.findByCreatedBy(userId).forEach(submissionList::add);
+
+            if (submissionList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(submissionList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/la/{laId}/submissions")
+    public ResponseEntity<List<Submission>> getSubmissionsByLatId(@PathVariable long laId) {
+        try {
+            List<Assignment> assignmentList = new ArrayList<>();
+
+            assignmentRepo.findByCreatedBy(laId).forEach(assignmentList::add);
+
+            List<Submission> submissionList = new ArrayList<>();
+
+            assignmentList.forEach(assignment -> {
+                submissionRepo.findByAssignmentId(assignment.getId()).forEach(submissionList::add);
+            });
 
             if (submissionList.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -79,10 +111,19 @@ public class SubmissionController {
     }
 
     @PostMapping("/submissions")
-    public ResponseEntity<Submission> addSubmission(@RequestBody Submission submission) {
-        Submission savedSubmission = submissionRepo.save(submission);
+    public ResponseEntity<Submission> addSubmission(@ModelAttribute Submission submission, @RequestParam MultipartFile file) {
 
-        return new ResponseEntity<>(savedSubmission, HttpStatus.OK);
+        try {
+            String filePath = fileService.uploadFile(file);
+
+            submission.setFilePath(filePath);
+
+            Submission savedSubmission = submissionRepo.save(submission);
+
+            return new ResponseEntity<>(savedSubmission, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/submissions/{id}")
@@ -92,14 +133,14 @@ public class SubmissionController {
         if (existingSubmission.isPresent()) {
             Submission submission = existingSubmission.get();
 
-            if (newSubmissionData.getFile_url() != null) {
-                submission.setFile_url(newSubmissionData.getFile_url());
+            if (newSubmissionData.getFilePath() != null) {
+                submission.setFilePath(newSubmissionData.getFilePath());
             }
 
-            if (newSubmissionData.isEvaluted()) {
-                submission.setEvaluted(false);
+            if (newSubmissionData.isEvaluated()) {
+                submission.setEvaluated(false);
             } else {
-                submission.setEvaluted(true);
+                submission.setEvaluated(true);
             }
 
             Submission updatedSubmission = submissionRepo.save(submission);

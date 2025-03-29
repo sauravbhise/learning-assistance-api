@@ -96,6 +96,28 @@ public class LaStudentMappingController {
         }
     }
 
+    @GetMapping("/students/{studentId}/la")
+    public ResponseEntity<Optional<User>> getLaByStudentId(@PathVariable long studentId) {
+        try {
+            LaStudentMapping mapping = laStudentMappingRepo.findByStudentId(studentId);
+
+            if (mapping == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            Optional<User> la = userRepo.findById(mapping.getLaId());
+
+            if (!la.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>(la, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("/la-students")
     public ResponseEntity<LaStudentMapping> addMapping(@RequestBody LaStudentMapping mapping) {
         LaStudentMapping savedMapping = laStudentMappingRepo.save(mapping);

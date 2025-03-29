@@ -1,7 +1,11 @@
 package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.Assignment;
+import com.example.learningassistance.model.LaStudentMapping;
+import com.example.learningassistance.model.User;
 import com.example.learningassistance.repo.AssignmentRepo;
+import com.example.learningassistance.repo.LaStudentMappingRepo;
+import com.example.learningassistance.repo.UserRepo;
 import com.example.learningassistance.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +25,8 @@ public class AssignmentController {
     private AssignmentRepo assignmentRepo;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private LaStudentMappingRepo laStudentMappingRepo;
 
     @GetMapping("/assignments")
     public ResponseEntity<List<Assignment>> getAllAssignments() {
@@ -55,6 +61,29 @@ public class AssignmentController {
         try {
             List<Assignment> assignmentList = new ArrayList<>();
             assignmentRepo.findByCreatedBy(userId).forEach(assignmentList::add);
+
+            if (assignmentList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(assignmentList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/students/{studentId}/assignments")
+    public ResponseEntity<List<Assignment>> getAssignmentsByStudentId(@PathVariable long studentId) {
+        try {
+            LaStudentMapping mapping = laStudentMappingRepo.findByStudentId(studentId);
+
+            if (mapping == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            List<Assignment> assignmentList = new ArrayList<>();
+            assignmentRepo.findByCreatedBy(mapping.getLaId()).forEach(assignmentList::add);
 
             if (assignmentList.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

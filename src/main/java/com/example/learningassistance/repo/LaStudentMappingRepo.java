@@ -10,4 +10,5 @@ import java.util.List;
 public interface LaStudentMappingRepo extends JpaRepository<LaStudentMapping, Long> {
 
     List<LaStudentMapping> findByLaId(long laId);
+    LaStudentMapping findByStudentId(long studentId);
 }

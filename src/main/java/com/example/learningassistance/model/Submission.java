@@ -11,21 +11,32 @@ public class Submission {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+
     private long assignmentId;
-    private long studentId;
-    private String file_url;
-    private boolean evaluted;
-    private LocalDateTime createdAt;
+    private long createdBy;
+
+    @Column(length = 500)
+    private String filePath;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean evaluated = false;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        this.evaluated = false;
+    }
 
     public Submission() {
     }
 
-    public Submission(long id, long assignmentId, long studentId, String file_url, boolean evaluted, LocalDateTime createdAt) {
+    public Submission(long id, long assignmentId, long createdBy, String filePath, boolean evaluated, LocalDateTime createdAt) {
         this.id = id;
         this.assignmentId = assignmentId;
-        this.studentId = studentId;
-        this.file_url = file_url;
-        this.evaluted = evaluted;
+        this.createdBy = createdBy;
+        this.filePath = filePath;
+        this.evaluated = evaluated;
         this.createdAt = createdAt;
     }
 
@@ -45,28 +56,28 @@ public class Submission {
         this.assignmentId = assignmentId;
     }
 
-    public long getStudentId() {
-        return studentId;
+    public long getCreatedBy() {
+        return createdBy;
     }
 
-    public void setStudentId(long studentId) {
-        this.studentId = studentId;
+    public void setCreatedBy(long createdBy) {
+        this.createdBy = createdBy;
     }
 
-    public String getFile_url() {
-        return file_url;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setFile_url(String file_url) {
-        this.file_url = file_url;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
-    public boolean isEvaluted() {
-        return evaluted;
+    public boolean isEvaluated() {
+        return evaluated;
     }
 
-    public void setEvaluted(boolean evaluted) {
-        this.evaluted = evaluted;
+    public void setEvaluated(boolean evaluated) {
+        this.evaluated = evaluated;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -77,3 +88,4 @@ public class Submission {
         this.createdAt = createdAt;
     }
 }
+
