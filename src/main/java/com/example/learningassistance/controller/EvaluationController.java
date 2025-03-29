@@ -1,7 +1,9 @@
 package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.Evaluation;
+import com.example.learningassistance.model.Submission;
 import com.example.learningassistance.repo.EvaluationRepo;
+import com.example.learningassistance.repo.SubmissionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ public class EvaluationController {
 
     @Autowired
     EvaluationRepo evaluationRepo;
+    @Autowired
+    SubmissionRepo submissionRepo;
 
     @GetMapping("/evaluations")
     public ResponseEntity<List<Evaluation>> getAllEvaluations() {
@@ -76,7 +80,18 @@ public class EvaluationController {
 
     @PostMapping("/evaluations")
     public ResponseEntity<Evaluation> addEvaluation(@RequestBody Evaluation evaluation) {
+
+        Optional<Submission> submissionOptional = submissionRepo.findById(evaluation.getSubmissionId());
+
+        if (!submissionOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         Evaluation savedEvaluation = evaluationRepo.save(evaluation);
+
+        Submission submission = submissionOptional.get();
+        submission.setEvaluated(true);
+        submissionRepo.save(submission);
 
         return new ResponseEntity<>(savedEvaluation, HttpStatus.OK);
     }

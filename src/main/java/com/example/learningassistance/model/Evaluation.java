@@ -15,7 +15,7 @@ public class Evaluation {
     private long evaluatorId;
     private String feedback;
     private float score;
-    private LocalDateTime evaluatedAt;
+    private LocalDateTime evaluatedAt = LocalDateTime.now();
 
     public Evaluation() {
     }

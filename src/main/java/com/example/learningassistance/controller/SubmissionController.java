@@ -138,9 +138,9 @@ public class SubmissionController {
             }
 
             if (newSubmissionData.isEvaluated()) {
-                submission.setEvaluated(false);
-            } else {
                 submission.setEvaluated(true);
+            } else {
+                submission.setEvaluated(false);
             }
 
             Submission updatedSubmission = submissionRepo.save(submission);
