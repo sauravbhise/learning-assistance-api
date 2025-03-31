@@ -69,6 +69,22 @@ public class SubmissionController {
         }
     }
 
+    @GetMapping("/students/{studentId}/assignments/{assignmentId}/submission")
+    public ResponseEntity<Submission> getSubmissionByAssignmentIdAndStudentId(@PathVariable long assignmentId, @PathVariable long studentId) {
+        try {
+            Optional<Submission> submission = submissionRepo.findByAssignmentIdAndCreatedBy(assignmentId, studentId);
+
+            if (!submission.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(submission.get(), HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/la/{laId}/submissions")
     public ResponseEntity<List<Submission>> getSubmissionsByLatId(@PathVariable long laId) {
         try {

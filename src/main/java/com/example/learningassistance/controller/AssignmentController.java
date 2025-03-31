@@ -2,9 +2,11 @@ package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.Assignment;
 import com.example.learningassistance.model.LaStudentMapping;
+import com.example.learningassistance.model.Submission;
 import com.example.learningassistance.model.User;
 import com.example.learningassistance.repo.AssignmentRepo;
 import com.example.learningassistance.repo.LaStudentMappingRepo;
+import com.example.learningassistance.repo.SubmissionRepo;
 import com.example.learningassistance.repo.UserRepo;
 import com.example.learningassistance.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ public class AssignmentController {
     private FileService fileService;
     @Autowired
     private LaStudentMappingRepo laStudentMappingRepo;
+    @Autowired
+    private SubmissionRepo submissionRepo;
 
     @GetMapping("/assignments")
     public ResponseEntity<List<Assignment>> getAllAssignments() {
@@ -90,6 +94,67 @@ public class AssignmentController {
             }
 
             return new ResponseEntity<>(assignmentList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/students/{studentId}/assignments/pending")
+    public ResponseEntity<List<Assignment>> getPendingAssignmentsByStudentId(@PathVariable long studentId) {
+        try {
+            LaStudentMapping mapping = laStudentMappingRepo.findByStudentId(studentId);
+
+            if (mapping == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            List<Assignment> assignmentList = new ArrayList<>();
+            assignmentRepo.findByCreatedBy(mapping.getLaId()).forEach(assignmentList::add);
+
+            if (assignmentList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            List<Assignment> pendingAssignmentsList = new ArrayList<>();
+
+            assignmentList.forEach(assignment -> {
+                if (!submissionRepo.findByAssignmentIdAndCreatedBy(assignment.getId(), studentId).isPresent()) {
+                    pendingAssignmentsList.add(assignment);
+                }
+            });
+
+            return new ResponseEntity<>(pendingAssignmentsList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/students/{studentId}/assignments/completed")
+    public ResponseEntity<List<Assignment>> getCompletedAssignmentsByStudentId(@PathVariable long studentId) {
+        try {
+            LaStudentMapping mapping = laStudentMappingRepo.findByStudentId(studentId);
+
+            if (mapping == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            List<Assignment> assignmentList = new ArrayList<>();
+            assignmentRepo.findByCreatedBy(mapping.getLaId()).forEach(assignmentList::add);
+
+            if (assignmentList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            List<Assignment> completedAssignmentsList = new ArrayList<>();
+
+            assignmentList.forEach(assignment -> {
+                if (submissionRepo.findByAssignmentIdAndCreatedBy(assignment.getId(), studentId).isPresent()) {
+                    completedAssignmentsList.add(assignment);
+                }
+            });
+
+            return new ResponseEntity<>(completedAssignmentsList, HttpStatus.OK);
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
