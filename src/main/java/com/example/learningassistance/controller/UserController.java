@@ -1,6 +1,7 @@
 package com.example.learningassistance.controller;
 
 import com.example.learningassistance.model.User;
+import com.example.learningassistance.repo.LaStudentMappingRepo;
 import com.example.learningassistance.repo.UserRepo;
 import com.example.learningassistance.service.JwtService;
 import com.example.learningassistance.service.UserService;
@@ -19,6 +20,8 @@ public class UserController {
 
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private LaStudentMappingRepo laStudentMappingRepo;
     @Autowired
     private UserService userService;
     @Autowired
@@ -88,6 +91,31 @@ public class UserController {
             }
 
             return new ResponseEntity<>(studentList, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/users/students/unassigned")
+    public ResponseEntity<List<User>> getAllUnassignedStudents() {
+        try {
+            List<User> studentList = new ArrayList<>();
+            userRepo.findByRole("STUDENT").forEach(studentList::add);
+
+            if (studentList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            List<User> unassignedStudentList = new ArrayList<>();
+
+            studentList.forEach(student -> {
+                if(laStudentMappingRepo.findByStudentId(student.getId()) == null) {
+                    unassignedStudentList.add(student);
+                }
+            });
+
+            return new ResponseEntity<>(unassignedStudentList, HttpStatus.OK);
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

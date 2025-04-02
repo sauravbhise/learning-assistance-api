@@ -120,6 +120,13 @@ public class LaStudentMappingController {
 
     @PostMapping("/la-students")
     public ResponseEntity<LaStudentMapping> addMapping(@RequestBody LaStudentMapping mapping) {
+
+        LaStudentMapping existingMapping = laStudentMappingRepo.findByStudentId(mapping.getStudentId());
+
+        if (existingMapping != null) {
+            return  new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+
         LaStudentMapping savedMapping = laStudentMappingRepo.save(mapping);
 
         return new ResponseEntity<>(savedMapping, HttpStatus.OK);
