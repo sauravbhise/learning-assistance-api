@@ -172,7 +172,22 @@ public class UserController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<HttpStatus> deleteUserById(@PathVariable long id) {
+        Optional<User> user = userRepo.findById(id);
+
+        if (!user.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        String userRole = user.get().getRole();
+
+        if (userRole.equals("LA") || userRole.equals("ADMIN")) {
+            laStudentMappingRepo.deleteByLaId(user.get().getId());
+        } else if (userRole.equals("STUDENT")) {
+            laStudentMappingRepo.deleteByStudentId(user.get().getId());
+        }
+
         userRepo.deleteById(id);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
